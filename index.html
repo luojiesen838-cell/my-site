@@ -2,11 +2,50 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>我的第一个页面</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>副脑聊天页面</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; }
+    textarea { width: 100%; height: 100px; margin-bottom: 10px; }
+    button { padding: 10px 20px; font-size: 16px; }
+    #response { margin-top: 20px; white-space: pre-wrap; }
+  </style>
 </head>
 <body>
-  <h1>欢迎来到我的网站！</h1>
-  <p>这是一个简单的示例页面，已成功部署。</p>
+  <h1>副脑聊天页面</h1>
+  <textarea id="prompt" placeholder="请输入你的问题"></textarea>
+  <button onclick="sendPrompt()">发送</button>
+  <pre id="response"></pre>
+
+  <script>
+    async function sendPrompt() {
+      const prompt = document.getElementById('prompt').value.trim();
+      if (!prompt) return alert('请输入问题');
+      const responseEl = document.getElementById('response');
+      responseEl.textContent = '等待回复中...';
+
+      try {
+        const res = await fetch('https://yuntian-deng-chatgpt.hf.space/proxy/openai/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.7,
+          })
+        });
+
+        if (!res.ok) throw new Error('请求失败，状态码：' + res.status);
+        const data = await res.json();
+        if (data.choices && data.choices.length > 0) {
+          responseEl.textContent = data.choices[0].message.content;
+        } else {
+          responseEl.textContent = '无回复内容';
+        }
+      } catch (e) {
+        responseEl.textContent = '出错了: ' + e.message;
+      }
+    }
+  </script>
 </body>
 </html>
